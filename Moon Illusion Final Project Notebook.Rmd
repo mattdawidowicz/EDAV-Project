@@ -1,0 +1,416 @@
+---
+title: "The Effect of Various Variables on State Partisanship"
+output: html_notebook
+---
+
+By the Moon Illusion (Matt Dawidowicz, Jun Guo, and Jieyu Yao)
+
+INTRODUCTION:
+
+Many different things play into how a state votes: its demographics, its industries, its culture, its economy, and many other aspects. While finding a perfect way to predict how people vote is likely impossible, many factors are highly discussed (college education, race, religion), some are only sometimes mentioned (urban population, gun ownership, union power/right-to-work, and poverty), and some are rarely mentioned (obesity, smoking rate, and life expectancy).
+
+Most of these variables are visualized and compared with each other, as well as the state's lean towards the Democratic Party. What this means is that the lean of each state relative to the national vote (2-party vote only) and then the lean is averaged together and given a percentage. For example, if a state leaned 2, 3, 4, and 5 points to the Democratic Party relative to the nation over 4 elections, the average is 3.5, and the data point will be 53.5%, or 0.535.
+
+We have created a Shiny app that contains 1) the data in a table, 2) bar charts comparing partisanship and demographics to population, with commentary, 3) various scatterplots comparing the variables together, with commentary, and 4) a leaflet map containing visualization of the entire United States with each continuous variable, with an overlay of the election lean.
+
+The Shiny app is here:
+
+https://edvafinal.shinyapps.io/EVDA-PROJECT/
+
+For convenience, keep this app open while following along in this notebook.
+
+As for where the data came from, Matt actually had the data, fully cleaned and indexed, from a statistics project he did before he came to DSI. Most of the data, such as population and the 2016 election results, were incorporated into the original data. Not all the data ended up being used, but we found many unexpected trends.
+
+TEAM:
+
+Matt provided the data, the ideas and the production of the graphs (being an expert on the political aspect of the subject), and most of the commentary.
+
+Jun worked heavily on the leaflet map, making sure it worked properly and displayed the data properly and succinctly.
+
+Jieyu designed the Shiny app and coded most of the sections, making sure the graphs were intuitive and prominent.
+
+For contact info, go to the "More" tab and click on "Team".
+
+ANALYSIS OF DATA QUALITY:
+
+This data has no missing values. Since there were only fifty data points, it is extremely easy to find and extract information about them. These are not rare or obscure measurements...most of them are constant or are measured at least once a decade, and usually far more often. While some of the data (e.g. white evangelicals) uses substantially older data (relatively) than the rest of the data, religious data does not change quickly, and the relative proportions since then are unlikely to have changed.
+
+This does not mean the data is perfect, however. Some of the data, such as smoking rate, is done by survey. It is a Gallup survey with a very large sample size, but it is an opinion survey. Obviously, most of these other categories are not perfect, either, and many were done through surveys, but the data seems coherent with the other statistics and anecdotes told about these states.
+
+Once or twice, there was conflicting data. Since there is no national registry or centralized record of gun ownership, that variable can be determined only by surveys. Business Insider had a far different distribution of gun ownership. However, it had low gun ownership in Nebraska and Ohio, and high ownership in Hawaii, which as we will see, would make huge outliers of those states.
+
+All in all, the data was all easily accessed and indexed, and all that was necessary was to scale it or place it into the table. Jun also added some columns from Gallup Analytics, through an account at Columbia. So while a lot of this data For a complete view of the data, go to the Data tab on the app.
+
+EXECUTIVE SUMMARY:
+
+While we went through the data, we found several relationships between variables.
+
+GRAPH 1:
+Taking the continuous variables of choice, we created a correlation matrix of the chosen variables (i.e. the ones we looked at). To see it, go to the Report tab in the app and click on "Correlation Plot". It is the first one.
+
+![With Democratic voting, Democratic states on average to have larger urban populations, longer life expectancies, lower smoking rates and obesity, stronger labor unions, fewer evangelicals, ESPECIALLY fewer gun owners, more college-educated citizens, and less poverty.](Graph1.png)
+
+The strongest relationships between all the chosen variables involve life expectancy. High life expectancy is postively correlated with college education, and is negatively correlated with obesity, smoking, poverty, white evangelicism, and gun ownership. The first three seem obvious as to why life expectancy would be lower, although the other ones are less clear...although most states with high obesity, smoking, and poverty (the South) also tend to own a lot of guns and are heavily evangelical.
+
+GRAPH 2:
+To see this, go to the Report tab in the app and click on "Correlation Plot". It is the second one.
+
+![While we already have the correlations, we can see the distributions of the selected variables. We can see that the average state has approximately a 12% poverty rate, 16% college graduates, a 40% gun ownership rate (with a huge dip outside that basic range; a few states own either very few guns or a lot of them), 25% white evangelicals (again with a similar pattern to gun ownership), 15% nonreligious, around 70% urban (almost all states are above 60%), and about 50% Democratic. The latter point shows how those other points can potentially be the tipping point for how a state votes. However, there are almost always outliers in both directions.](Graph2.png)
+
+GRAPH 3 (INTERACTIVE):
+
+To see this, go to the Report tab in the app and click on "Scatter Plot". It is the last one.
+
+This graph measures urban percentage vs. Democratic Vote, with color signifying gun ownership, and then a facet wrap done by region. In the Northeast, gun ownership and urban population has a minimal relationship with partisanship, and if anything, is slightly negatively correlated...although that is possibly caused by the outliers of Maine and Vermont being FAR more Democratic than typical rural, white states. The Midwest and West have a rather strong relationship between urban population and Democratic strength, and the South has a lesser one. 
+
+Gun ownership (except in the Northeast) puts a large damper on Democratic voting, but since gun ownership and urban population are negatively correlated regardless of votes, whichever has a stronger effect on Democratic voting is hard to isolate from this graph...although the correlation matrix above says gun ownership matters far more.
+
+One surprise is how many states you would think are prime gun culture states, based on news stories and political drama, are not actually very high on the list in terms of gun ownership. Texas and Florida, for example, have the lowest gun ownership rates in the South, and actually have less gun ownership than more Democratic states in the West, like Oregon and Washington.
+
+MAIN ANALYSIS:
+
+While we showed the main trends above, there were a few other interesting trends we isolated.
+
+BAR PLOT TAB:
+
+To see this, go to the Report tab in the app and click on "Bar Plot".
+
+First Graph:
+
+Code:
+
+```{r, eval = F, echo = T}
+output$hist1 <- renderPlotly({
+      ggplot(data = state_data, aes(x=reorder(State,Population), y= Population))+
+        geom_bar(aes(fill = state_data$Democratic_Vote),stat = "identity")+scale_fill_gradientn(colours = c("red","indianred2", "purple", "mediumblue", "navyblue"))+
+        coord_flip()+
+        scale_y_continuous(labels = comma)+
+        ylab("Population")+
+        xlab("State")+
+        ggtitle("General View for Population on state level")
+```
+
+Comments:
+
+Despite the talk of America's 'small state bias' helping the Republican Party, population in and of itself does not play a huge role in a state's partisanship. California is very Democratic and is the biggest state, but Texas is the second-biggest state and is very Republican. Of the ten smallest states, only 3 are solidly Republican. Of the ten largest states, only 3 are solidly Democratic. Of course, there is some truth to the bias. Most of the states on the more solidly red end of the scale are below the 50th percentile. And even most of the more conservative large states lean more towards red-purple than solid red. Even Texas, the state known as the "crown jewel" of Republican states, isn't as red as other states, and Hillary Clinton actually did better there in 2016 than any Democrat in decades. But in the end, it's not as simple as "Big state blue, small state red."
+
+This plot was originally considered to be a scatterplot as well, but we realized it added nothing and was unnecessary, so it stayed as a bar graph.
+
+Graph 2:
+
+Code:
+
+```{r, eval = F, echo = T}
+
+output$hist2 <- renderPlotly({
+      state_data$Urban = state_data$Population * state_data$Pct_Urban
+      state_data$Rural = state_data$Population * (1 - state_data$Pct_Urban)
+      state_data_urban2 <- state_data[,c("State","Rural","Urban")]
+
+      m <- list(l = 100,
+                r = 50,
+                b =50,
+                t =10,
+                pad = 1)
+      p<-plot_ly(data = state_data_urban2,x=~Urban, y=~reorder(State,Urban),type = 'bar',name  = "Urban") %>%
+        add_trace(x = ~Rural,name = 'Rural')  %>%
+        layout(yaxis = list(title = "",tickfont=list(size = 8)),xaxis = list(title=""),barmode = 'stack',margin = m)
+    })
+
+```
+
+Comments:
+
+Here, we can see how percentages are somewhat misleading. Despite most states being heavily urban, if the state is large, the rural population can still be quite substantial. Texas has the largest rural population in number (approximately 4.3 million), despite being in a distant 2nd place to California in population as a whole. But since Senate races and presidential elections are decided solely by who wins states, this is not as relevant as it may seem.
+
+Despite there being a correlation between urban population and partisanship, the correlation is not as strong as other variables. This is why many Republican states are still substantially urban. Despite the glamorization of the small town and "real America", most people live in cities...although many live in small cities and suburbs the Census Bureau classifies as urban. "Urban" can be a vague term, and usually just means "not rural". In this report, even the "rural" states are majority-urban, with 4 exceptions. "Rural" means something closer to "far less urban than the national average".
+
+We felt a stacked bar graph worked best here because having the bars side by side would not have had the same visual effect as "two parts adding up to make a whole".
+
+Graph 3:
+
+Code:
+
+```{r, eval = F, echo = T}
+output$hist3 <- renderPlotly({
+      state_data$Democratic = state_data$Democratic_Vote * state_data$Population
+      state_data$Republican = (1 - state_data$Democratic_Vote) * state_data$Population
+      state_data_DR2 <- state_data[, c("State","Democratic","Republican")]
+      m <- list(l = 100,
+                r = 50,
+                b =50,
+                t =10,
+                pad = 1)
+      p<-plot_ly(data = state_data_DR2,x=~Democratic, y=~reorder(State,Democratic),type = 'bar',name  = "Democratic",
+                 marker = list(color = 'rgb(26, 118, 255)')) %>%
+        add_trace(x = ~Republican,name = 'Republican',marker = list(color = 'rgb(205, 61, 61)'))  %>%
+        layout(yaxis = list(title = "",tickfont=list(size = 8)),xaxis = list(title=""),barmode = 'stack',margin = m)
+
+    })
+```
+
+Comments:
+
+While not every American votes, each person does give a state more electoral power. Using this, we can see just how many votes each side gets from each state, and how even the most lopsided states has hundreds of thousands, or even millions of supporters for the losing party. In a winner-take-all system, it can be easy to forget that no state is unanimous. You shouldn't be shocked when you meet an arch-conservative from California or a liberal from Texas...the state has millions of each of those despite the state being very safe for the other party, respectively. It also shows how whoever wins the Electoral College may not win the popular vote, due to the loser wracking up votes in a few states. While this rarely happens, it does show how states are NOT all equal when they vote population-wise.
+
+As said above, we chose a stacked bar graph here because having them side-by-side would not have had the same effect as having them in the same bar, showing how it adds up to the first graph.
+
+CORRELATION PLOT TAB:
+
+This was already covered above, but here is the code for them:
+
+Graph 1 and 2:
+
+(cor1 is Graph 1, cor2 is Graph 2.)
+
+```{r, eval = F, echo = T}
+
+corrdata = state_data[,c("Population", "Poverty_Rate", "Pct_College_Graduate",
+                             "Gun_Owner_Pct", "Pct_White", "Pct_White_Evangelical",
+                             "Pct_Nonreligious", "Pct_Urban", "Pct_Obese", "Life_Exp", 
+                             "Pct_Union", "Pct_Smoker", "Democratic_Vote")]
+    colnames(corrdata) = c("pop", "poverty", "college", "gunowner", "white", "whiteeva", 
+                           "nonrelig", "urban", "obese", "LifeExp.", "union", "smoker", "DVote")
+    corrdata$Vote_Result[corrdata$DVote >= 0.5]<-"Democratic"
+    corrdata$Vote_Result[corrdata$DVote <= 0.5]<-"Republican"
+    
+    output$cor1 <- renderPlot({
+      ggcorr(corrdata, label = TRUE, label_round =2, digits = 3, label_size = 3.5, nudge_x = -0.5, layout.exp = 2)
+    })
+    
+    output$cor2 <- renderPlot({
+      ggpairs(corrdata[,c(2,3,4,6,7,8,13)], aes(colour = "blue"))
+    })
+```
+
+SCATTER PLOT TAB:
+
+To see this, go to the Report tab in the app and click on "Scatter Plot".
+
+Graph 1:
+
+Code:
+
+```{r, eval = F, echo = T}
+
+    output$scatter3 <- renderPlotly({
+      ggplot(state_data, aes(x = Poverty_Rate, y = Democratic_Vote, label = State, color = 100*Pct_Urban)) +
+        geom_point() + 
+        geom_smooth(method = 'lm', se = FALSE) + 
+        scale_colour_gradientn("% urban", colours = c('green', 'blue')) + 
+        xlab("Poverty rate")
+    })
+
+```
+
+Comments:
+
+Despite poor people tending to vote Democratic on average, the states they are most concentrated in tend to be very Republican. Also, despite the talk of 'inner city hell' and 'horrific poverty' in our nation's biggest cities', the poorest parts of America are mostly rural. As seen, the most Democratic states have lower poverty rates and are more urban (with the two large outliers of Maine and Vermont...two heavily white rural states that vote FAR more Democratic than states with those demographics should). This is possibly because more Democratic states have more generous safety nets, or because the economic landscape of more urban, cosmopolitan states is better for people in general.
+
+Graph 2:
+
+Code:
+
+```{r}
+output$scatter4 <- renderPlotly({
+      ggplot(state_data, aes(x = Pct_Obese, y = Democratic_Vote, label = State)) + 
+        geom_point(aes(color = 100*state_data$Life_Exp)) + 
+        geom_smooth(method = 'lm', se = FALSE) + 
+        scale_colour_gradientn("Life Expectancy (years)", colours = c('red', 'purple','blue'))
+    })
+```
+Comments:
+
+Similar to the other graph, obesity is correlated with Republican voting, as well as lower life expectancy. While there are many Republican states with higher life expectency, they are the less obese ones. Above a rate of 31%, the only states left are heavily Republican southern states with low life expectancy (with two Midwestern exceptions). Obesity might be correlated with poverty, and poorer areas have less access to healthier food.
+
+Graph 3:
+
+Code:
+
+```{r, eval = F, echo = T}
+output$scatter5 <- renderPlotly({
+      ggplot(state_data, aes(x = state_data$Pct_Smoker, y = Democratic_Vote, label = State)) +
+        geom_point(aes(color = Region)) +
+        geom_smooth(method = 'lm', se = FALSE) +
+        xlab("Smoking Rate")+
+        ylab("Democratic Vote")
+    })
+```
+
+Comments:
+
+Smoking rate tends to be correlated with a state being more Republican. In fact, it has almost the exact same pattern as obesity: It is heaviest among the poor rural Republican states and the South. Smoking laws tend to be much more lax in the South than in the North. Of course, that region has a history of growing tobacco, so that may play a part. Smoking rates are lowest in the West, particularly Utah, Idaho, and Wyoming, but that may do with their Mormon populations and their lack of tobacco history. It is also low in California and the Northeast, but since those states are wealthier, that likely also contributes to the trends.
+
+Graph 4:
+
+This was also covered above, but here is the code:
+
+```{r, eval = F, echo = T}
+    output$scatter6 <- renderPlotly({
+      ggplot(state_data, aes(x = Pct_Urban, y = Democratic_Vote, label = State)) + 
+        geom_point(aes(color = Gun_Owner_Pct)) + 
+        geom_smooth(method = 'lm', se = FALSE) + 
+        xlab("% Urban") + 
+        ylab("Democratic Vote") + 
+        scale_colour_gradientn("Gun Ownership (%)", colours = c('blue', 'purple','red')) + 
+        facet_wrap(~Region)
+    })
+```
+
+HEATMAP:
+
+To see this, go to the Report tab in the app and click on "Heatmap".
+
+Graph 1:
+
+Code:
+
+```{r, eval = F, echo = T}
+output$heat1 <- renderPlotly({
+      ggplot(state_data, aes(x = RTW, y = State)) + 
+        geom_tile(aes(fill = Democratic_Vote)) + 
+        scale_fill_gradientn(colours = c("red", "red", "white", "blue", "blue"))+
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),panel.background = element_rect(fill = 'grey', colour = 'grey')) + ylim(rev(state_data$State))
+    })
+```
+
+Comments:
+
+States that are not right-to-work (a state that has legislation forbidding labor unions
+from forcing dues on members of a unionized workplace who are not union members) tend to be more Democratic, while right-to-work states tend to be more Republican. These laws weaken unions because it allows free-riding on people who do pay dues, so fewer people join unions. Since many of these states have been right-to-work for decades, even in times of American history where unions were far more influential and powerful, it is unknown if unions are weak because they are so Republican, or they are so Republican because unions are so weak. Unions have historically supported Democratic candidates, but the partisanship of their members depends on the political climate and the particular union. But regardless, union power is an institution Democrats rely on for electoral and political power, so states with stronger ones likely have more Democratic voters...but historically, that hasn't always been the case.
+
+This one, as well as the next graph, uses white as the center color in the scale instead of purple because it seemed like a better fit for a heatmap, and that true white is just below 50% Democratic, which is the way median states historically lean due to GOP performance in rural areas.
+
+Graph 2:
+
+Code:
+
+```{r, eval = F, echo = T}
+output$heat2 <- renderPlotly({
+      ggplot(state_data, aes(x = Region, y = State)) + 
+        geom_tile(aes(fill = Democratic_Vote)) + 
+        scale_fill_gradientn(colours = c("red", "red", "white", "blue", "blue"))+ ylim(rev(state_data$State))+
+        theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(), panel.background = element_rect(fill = 'grey', colour = 'grey')) 
+    })
+```
+
+Comments:
+
+The Northeast votes solidly Democratic, the South tends to vote solidly Republican (except for a few swing states), and the other two regions tend to split their votes, at least by state. This tends to match statistics and anecdotes of how areas and states vote, and what types of swing states people talk about during every election cycle. The Midwest has been America's swing region for over 120 years, so it makes sense that it has the swingiest states.
+
+MAP TAB:
+
+To see this, click on the Map Tab.
+
+Code:
+
+```{r, eval = F, echo = T}
+ bins <- c(0,0.3,0.35,0.40,0.45,0.49,0.51,0.55,0.60,0.65,0.70,1)
+    cpal <- colorBin(palette = "RdBu",domain = mapdt$Democratic_Vote,bins = bins)
+    clabels <-sprintf("%s Vote Lean:\n %g",mapdt$NAME,mapdt$Democratic_Vote)
+    
+    output$map <- renderLeaflet({
+      leaflet(mapdt) %>% 
+        addProviderTiles(providers$Stamen.TonerLite, options = providerTileOptions(noWrap = TRUE))%>%
+        setView(-100.00, 40.00, zoom = 4) %>%
+        addPolygons(color = "#444444", weight = 1, smoothFactor = 0.5,
+                    opacity = 1.0, fillOpacity = 0.9,
+                    fillColor = ~cpal(mapdt$Democratic_Vote),
+                    highlightOptions = highlightOptions(color = "white", weight = 2, bringToFront = TRUE),
+                    label = clabels, 
+                    labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"),textsize = "15px")) %>%
+        addLegend(position= "bottomleft",pal = cpal, opacity = 0.7, values = mapdt$Democratic_Vote ,title = "Vote")
+    })
+    
+    selectdata <- reactive({mapdt@data[input$vars]}) #
+    
+    observe({
+      varBy <- input$vars
+      proxy <- leafletProxy("map", data = mapdt)
+      pal <- colorNumeric(palette = "Greens",domain = selectdata())
+      labels <-sprintf("%s with %s:\n %g",mapdt$NAME,varBy, as.numeric(unlist(selectdata()))) #(selectdata()/1e6,digits = 2)
+      proxy %>% 
+        clearShapes() %>% clearControls() %>%
+        addPolygons(color = "#444444", weight = 1, smoothFactor = 0.5,
+                    opacity = 1.0, fillOpacity = 0.7,
+                    fillColor = ~pal(selectdata()),
+                    highlightOptions = highlightOptions(color = "white", weight = 2, bringToFront = TRUE),
+                    label = labels, 
+                    labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"),textsize = "15px")) %>%
+        addLegend(position= "bottomleft",pal = pal, opacity = 0.7, values =  as.numeric(unlist(selectdata())),title = "Scale")
+    })
+    mj <- list(l = 25, r = 0.5,t =5,b=40)
+    output$small <- renderPlotly({
+      #ggplot(selectdata())+geom_point(aes(x = as.numeric(unlist(selectdata())), y= mapdt$Democratic_Vote))+xlab(input$vars)+ylab("Democratic Lean")#+scale_color_gradient2(low ="red",high = "blue",midpoint = 0.5 ) , color = mapdt$Democratic_Vote
+      plot_ly(x = as.numeric(unlist(selectdata())), y= mapdt$Democratic_Vote,color = mapdt$Democratic_Vote,colors = cpal,text =mapdt$State) %>%
+        layout(xaxis = list(title=input$vars),yaxis = list(title="",tickangle=-30),margin = mj)
+    })
+    
+    observe({
+      proxy <- leafletProxy("map", data = mapdt)
+      pal <- colorNumeric(palette = "Greens",domain = selectdata())
+      labels <-sprintf("%s with %s:\n %g",mapdt$NAME,input$vars, as.numeric(unlist(selectdata())))
+      
+      if(input$BR){
+        proxy %>% 
+          addPolygons(color = "#444444", weight = 1, smoothFactor = 0.5,
+                      opacity = 1.0, fillOpacity = 0.5,
+                      fillColor = ~cpal(mapdt$Democratic_Vote),
+                      highlightOptions = highlightOptions(color = "white", weight = 2, bringToFront = TRUE),
+                      label = labels, 
+                      labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"),textsize = "15px"))}
+      else{
+        proxy %>% clearShapes() %>% 
+          addPolygons(color = "#444444", weight = 1, smoothFactor = 0.5,
+                      opacity = 1.0, fillOpacity = 0.7,
+                      fillColor = ~pal(selectdata()),
+                      highlightOptions = highlightOptions(color = "white", weight = 2, bringToFront = TRUE),
+                      label = labels, 
+                      labelOptions = labelOptions(style = list("font-weight" = "normal", padding = "3px 8px"),textsize = "15px"))
+      }
+    })
+```
+
+Comments:
+
+This creates an interactive map of all 50 states with hover text of any continuous variable you choose from the drop-down list. There is also a scatterplot comparing every chosen variable to Democratic vote. You can even choose Democratic vote...although all you'll get is a perfect y=x line made of scatterplot points. Most of the patterns you see are ones we have already discussed, at least in part. Many variables do not really have any relationship whatsoever to Democratic Vote, or at least not an obvious one that can be seen in a scatterplot.
+
+You can also check the "Political Map" box to have an overlay of the Democratic vote to see the direct comparison on the map. This was why green was chosen as the color scale for everything else...to make it easier to see under the red/blue overlay. We also would have preferred a scale that did not go from dark blue to dark red so quickly, but we could not find a way to customize the pre-made leaflet palettes.
+
+CONCLUSION:
+
+As Matt was the political buff in the group, he said that the results were not surprising, but some were connections he never really thought of. Also, while Matt had used this data in a previous project, he was using it for a massive linear regression model for a programming course. He was looking at several variables' mathematical relationships to each other, not visualizing 2-3 each together in graphs.
+
+As for the limitations, the issue is that the United States is a very diverse country, and just 50 data points isn't going to cut it in getting deep enough to truly dissect all voting patterns. There are very few states where the entire population is politically homogenous, and even very Democratic states have rather Republican areas, and vice versa. Also, race was almost never discussed in this project, and this country's electoral patterns have been racially polarized for decades, especially in the South. We were considering using race at some point, but there have already been countless studies and analyses of racial voting patterns, and we wanted to try something relatively unexplored. But still, adjusting a few variables for race might have helped.
+
+One way around this is to use counties...and perhaps crazily, Matt had fully cleaned and indexed data for THAT as well for another statistics project, although with different features. In fact, that was our original plan, but we decided against it for one reason: counties are not any more helpful. Counties are ridiculously arbitrary, and in this kind of project, every data point is equally weighed. Los Angeles County has a population of almost 10 million, a greater population than 42 states, and it would be weighed equally with Loving County, Texas, with a population of 82, smaller than the EDAV class. States can have this deviation, but states are more relevant automatically, as they automatically get two Senators, at least one Congressman, and at least three electoral votes. Something like a collection of metropolitan areas might work better, but the data for that is harder to find. Using states was the best compromise of usefulness and access.
+
+All in all, we all feel this project worked very well, and were rather ambitious with adding so much interactivity. It has also really taught us about some unexpected trends in American states, and how they drive our politics...or how what drives our politics causes these trends.
+
+DATA SOURCES:
+
+At the top of the Shiny app, click on the "More" tab, and then click Data Source. All the columns are cited with the website it was found. Most of them were from wikipedia (with links to their proper respective sources within wikipedia), due to information about states being very easy to locate and find. The few found at other sources are also cited.
+
+The only exception is "Region", which was decided at Matt's judgement. Region is a surprisingly subjective classification; while a majority of states are obvious pertaining to their region, but some aren't. Some say West Virginia is a Southern state, some say it is a Northeastern state. Some say Missouri is a Southern state, some say it's Midwestern. In the end, being an expert on political geography, Matt chose the regions that seemed best.
+
+LINKS:
+
+All the code is posted to github:
+https://github.com/mattdawidowicz/EDAV-Project
+
+There are several files:
+Moon Illusion Final Project Notebook.nb.html: a copy of this file
+
+Moon Illusion Final Project Notebook.rmd: the code for this file
+
+Graph1.png: the correlation matrix picture...if you need to recreate this notebook with the RMD file.
+
+Graph2.png: the correlation matrix/distribution picture...if you need to recreate this notebook with the RMD file.
+
+ui.r: the first file that makes up Shiny; tells the app what tabs to make and what to place in them.
+
+server.r: the second file that makes up Shiny; contains the actual code used to make the graphs
+
+EDAV-State-Data.csv: the complete data table, if you would like to see the original CSV.
+
+We have redone the code to allow the app to run locally so as not to mess with the published version. Just open both r files in RStudio and press "Run App" in one of them. If any packages need installing, uncomment the appropriate lines.
